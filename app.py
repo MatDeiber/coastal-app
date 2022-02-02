@@ -1,95 +1,78 @@
+from re import T
 import streamlit as st
 import datetime, time
 from datetime import timedelta
-from streamlit_folium import folium_static
-import folium
 import matplotlib.pyplot as plt
+import pandas as pd
+import joblib
+
+def predict(armour_slope,water_level,bed_elevation_at_toe,
+            crest_level,armour_density,water_density,
+            armour_mass,hs_toe,tp,n_waves,notional_permeability,armour_type):
+
+    data = {
+        'Armour Slope [v:h]': [f'1:{armour_slope}'],
+        'Water Level [ m Datum]':[float(water_level)],
+        'Bed Elevation at Toe [m Datum]':[float(bed_elevation_at_toe)],
+        'Crest Level [m Datum]':[float(crest_level)],
+        'Armour Density [kg/m3]':[float(armour_density)],
+        'Water Density [kg/m3]':[float(water_density)],
+        'Armour Mass [kg]':[float(armour_mass)],
+        'Significant Wave Height at Toe [m]':[float(hs_toe)],
+        'Peak Wave Period [s]':[float(tp)],
+        'Number of Waves [-]':[float(n_waves)],
+        'Notional Permeability [-]': [float(notional_permeability)],
+        'Armour Type':armour_type,
+
+    }
+
+    model = joblib.load('model_best.joblib')
+
+    df = pd.DataFrame(data)
+
+    prediction = model.predict(df)
+
+    return prediction
+
 '''
-# TaxiFareModel Prediction
+# Coastal Structure - % Damage
 '''
 page_load_start_time = time.time()
 page_load_time_placeholder = st.sidebar.empty()
-'''
-## Enter taxi ride information: .strftime("%Y-%m-%d %H:%M:%S")
-'''
-d = st.date_input("Enter your date of travel",
-                  datetime.datetime(2022, 1, 1, 1))
-st.write(d)
-t = st.time_input('Choose a time', datetime.time(8, 45))
-date_time = datetime.datetime.combine(d, t)
-date_str = date_time.strftime("%Y-%m-%d %H:%M:%S")
-st.write(date_time)
-pickup_longitude = st.number_input('pickup longitude')
-pickup_latitude = st.number_input('pickup latitude')
-dropoff_longitude = st.number_input('dropoff longitude')
-dropoff_latitude = st.number_input('dropoff latitude')
-passenger_count = st.slider('Select a modulus', 1, 10, 2)
-url = 'https://taxifare.lewagon.ai/predict'
-data = {
-    "pickup_latitude": pickup_latitude,
-    "pickup_longitude": pickup_longitude,
-    "dropoff_latitude": dropoff_latitude,
-    "dropoff_longitude": dropoff_longitude,
-    "passenger_count": int(passenger_count),
-    "pickup_datetime": date_str,
-}
-import requests
-if st.button('Predict'):
-    # print is visible in the server output, not in the page
-    response = requests.get(url, params=data)
-    pred = response.json()['prediction']
-    temp_date = []
-    for i in range(10):
-        temp_date.append(date_time + (i - 5) * timedelta(minutes = 15))
-    """
-    Result is:
-    """
 
-    predictions = []
-    for dt in temp_date:
-        data = {
-            "pickup_latitude": pickup_latitude,
-            "pickup_longitude": pickup_longitude,
-            "dropoff_latitude": dropoff_latitude,
-            "dropoff_longitude": dropoff_longitude,
-            "passenger_count": int(passenger_count),
-            "pickup_datetime": dt.strftime("%Y-%m-%d %H:%M:%S"),
-        }
-        response = requests.get(url, params=data)
-        predictions.append(response.json()['prediction'])
+armour_type = st.radio(
+     "Armour Type:",
+     ('XBLOCK', 'HANBAR', 'ROCK'))
+col1, col2, col3 = st.columns(3)
+with col1:
+    armour_slope = st.number_input('Armour Slope [1:h]:', value = 1.33)
+    crest_level = st.number_input('Crest Level [m Datum]:', value = 3.5)
+    
+    armour_mass = st.number_input('Armour Mass [kg]:', value = 2000)
+    notional_permeability = st.number_input('Notional Permeability [-]:', value = 0.1)
 
+with col2:
+    water_level = st.number_input('Water Level [m Datum]:', value = 1.5)
+    bed_elevation_at_toe = st.number_input('Bed Elevation at Toe [m Datum]:', value = -3.5)
+    armour_density = st.number_input('Armour Density [kg/m3]:', value = 2650)
+    water_density = st.number_input('Water Density [kg/m3]:', value = 1020)
 
+with col3:
+    hs_toe = st.number_input('Significant Wave Height at Toe [m]:', value = 4.5)
+    tp = st.number_input('Peak Wave Period [s]:', value = 12.5)
+    n_waves = st.number_input('Number of Waves [-] :', value = 1000)
 
-    st.write("It will cost $" + str(pred))
+col1, col2, col3 = st.columns(3)
+with col2:
+    if st.button('Predict'):
+        
+        pred = predict(armour_slope,water_level,bed_elevation_at_toe,
+                crest_level,armour_density,water_density,
+                armour_mass,hs_toe,tp,n_waves,notional_permeability,armour_type)
 
-    fig, ax = plt.subplots()
-    ax.plot(temp_date, predictions)
-    ax.set_xlabel(time)
+        st.markdown("Estimated Damage: " + str(pred) + "%")
 
-    st.pyplot(fig)
-
-
-
-
-    # center on Liberty Bell
-    m = folium.Map(location=[pickup_longitude, pickup_latitude], zoom_start=16)
-
-    # add marker for Liberty Bell
-    tooltip = "Liberty Bell"
-    folium.Marker([pickup_longitude, pickup_latitude],
-                  popup="Liberty Bell",
-                  tooltip=tooltip).add_to(m)
-
-    folium.Marker([dropoff_longitude, dropoff_latitude],
-                  popup="Liberty Bell",
-                  tooltip=tooltip).add_to(m)
-
-    # call to render Folium map in Streamlit
-    folium_static(m)
-
-
-
-else:
-    st.write('Enter the params first')
-page_load_duration = time.time() - page_load_start_time
-page_load_time_placeholder.markdown(f'{round(page_load_duration, 3)} seconds')
+    else:
+        st.write('Enter the parameters first')
+    page_load_duration = time.time() - page_load_start_time
+    page_load_time_placeholder.markdown(f'{round(page_load_duration, 3)} seconds')
