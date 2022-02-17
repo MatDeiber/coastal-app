@@ -3,3 +3,5 @@ setuptools
 streamlit_folium
 folium
 matplotlib
+joblib
+datetime
