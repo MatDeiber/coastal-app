@@ -7,4 +7,3 @@ joblib
 datetime
 sklearn
 tensorflow
-git+https://github.com/MatDeiber/ml_model.git@master
