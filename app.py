@@ -42,7 +42,7 @@ page_load_time_placeholder = st.sidebar.empty()
 
 armour_type = st.radio(
      "Armour Type:",
-     ('XBLOCK', 'HANBAR', 'ROCK'))
+     ('XBLOC', 'HANBAR', 'ROCK'))
 col1, col2, col3 = st.columns(3)
 with col1:
     armour_slope = st.number_input('Armour Slope [1:h]:', value = 1.33)
