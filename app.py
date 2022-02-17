@@ -45,7 +45,7 @@ armour_type = st.radio(
      ('XBLOC', 'HANBAR', 'ROCK'))
 col1, col2, col3 = st.columns(3)
 with col1:
-    armour_slope = st.number_input('Armour Slope [1:h]:', value = 1.33)
+    armour_slope = st.number_input('Armour Slope [1:h]:', value = 1.5)
     crest_level = st.number_input('Crest Level [m Datum]:', value = 3.5)
     
     armour_mass = st.number_input('Armour Mass [kg]:', value = 2000)
