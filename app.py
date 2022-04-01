@@ -69,6 +69,8 @@ with col2:
         pred = predict(armour_slope,water_level,bed_elevation_at_toe,
                 crest_level,armour_density,water_density,
                 armour_mass,hs_toe,tp,n_waves,notional_permeability,armour_type)
+        
+        pred = max(pred, 100)
 
         st.markdown("Estimated Damage: " + str(pred) + "%")
 
