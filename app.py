@@ -70,7 +70,7 @@ with col2:
                 crest_level,armour_density,water_density,
                 armour_mass,hs_toe,tp,n_waves,notional_permeability,armour_type)
         
-        pred = max(pred, 100)
+        pred = 100 if pred > 100 else pred
 
         st.markdown("Estimated Damage: " + str(pred) + "%")
 
